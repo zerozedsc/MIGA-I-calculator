@@ -1,0 +1,5 @@
+{
+  "name": "MIGA-i Gold Price Calculator",
+  "description": "A responsive web application helping users find the most profitable gold purchase amount by comparing price per gram against standard market rates.",
+  "requestFramePermissions": []
+}

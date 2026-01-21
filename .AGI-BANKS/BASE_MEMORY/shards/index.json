@@ -1,0 +1,18 @@
+{
+  "version": "4.1",
+  "last_updated": "2026-01-21T04:19:47Z",
+  "shards": [
+    {
+      "id": "vcs_backup",
+      "file": "vcs_backup.md",
+      "summary": "Version control and backup configuration",
+      "tags": ["vcs", "git", "backup"]
+    },
+    {
+      "id": "environment",
+      "file": "environment.md",
+      "summary": "Detected environment: OS/runtime/tools/frameworks",
+      "tags": ["env", "node", "npm", "vite", "react"]
+    }
+  ]
+}

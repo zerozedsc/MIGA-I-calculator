@@ -1,20 +1,36 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# MIGA-i Gold Price Calculator
 
-# Run and deploy your AI Studio app
+Client-side calculator built with **Vite + React + TypeScript**.
 
-This contains everything you need to run your app locally.
+## Local development
 
-View your app in AI Studio: https://ai.studio/apps/drive/1Ylmd5QexR6kdwRYH-OLxyqIgTEPY2AY-
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js + npm
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   - `npm install`
+2. Start the dev server:
+   - `npm run dev`
+3. Build for production:
+   - `npm run build`
+4. Preview the production build locally:
+   - `npm run preview`
+
+## Deploy to Netlify
+
+This is a static SPA.
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+- SPA routing: a catch-all redirect to `/index.html` is included via:
+  - `public/_redirects`
+  - `netlify.toml`
+
+If Netlify UI shows **Runtime: Next.js**, switch it to a static site setup (this repo is not Next.js).
+
+## Favicon
+
+The app uses `favicon.svg` (wired via `index.html`).
+
+## Local-only folders
+
+- `.AGI-BANKS/` and `.docs/` are local-only project memory/notes and are gitignored.

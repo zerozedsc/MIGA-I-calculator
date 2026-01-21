@@ -28,7 +28,7 @@ const App: React.FC = () => {
   const [results, setResults] = useState<CalculationResult[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [hasCalculated, setHasCalculated] = useState(false);
-  
+
   // Ref for managing focus and scroll to results
   const resultsRef = useRef<HTMLElement>(null);
 
@@ -51,7 +51,7 @@ const App: React.FC = () => {
     options.forEach((opt) => {
       const gramsVal = parseFloat(opt.grams);
       const priceVal = parseFloat(opt.totalPrice);
-      
+
       const optError: { grams?: string; totalPrice?: string } = {};
 
       if (opt.grams !== '' && (isNaN(gramsVal) || gramsVal <= 0)) {
@@ -64,16 +64,16 @@ const App: React.FC = () => {
       }
 
       if (opt.grams && !opt.totalPrice) {
-          optError.totalPrice = t.errors.required;
-          hasOptionErrors = true;
+        optError.totalPrice = t.errors.required;
+        hasOptionErrors = true;
       }
       if (!opt.grams && opt.totalPrice) {
-          optError.grams = t.errors.required;
-          hasOptionErrors = true;
+        optError.grams = t.errors.required;
+        hasOptionErrors = true;
       }
 
       // Special MIGA-i requirement check
-       if (opt.totalPrice && priceVal < 10) {
+      if (opt.totalPrice && priceVal < 10) {
         optError.totalPrice = t.errors.minRm10;
         hasOptionErrors = true;
       }
@@ -97,22 +97,22 @@ const App: React.FC = () => {
       const calculatedResults = calculateBestDeal(standardPrice, options);
       setResults(calculatedResults);
       setHasCalculated(true);
-      
+
       // Move focus to results and scroll into view
       // Works for all device types (Mobile, Tablet, Desktop)
       setTimeout(() => {
         if (resultsRef.current) {
           // scroll-mt-24 (added in className) ensures sticky header doesn't cover content
           resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          
+
           // Set focus for accessibility (screen readers) and keyboard users
           // preventScroll: true prevents browser from jumping focus, allowing smooth scroll above to handle visual
           resultsRef.current.focus({ preventScroll: true });
         }
       }, 100);
     } else {
-        setResults([]);
-        setHasCalculated(false);
+      setResults([]);
+      setHasCalculated(false);
     }
   };
 
@@ -125,10 +125,10 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
       <Header language={language} toggleLanguage={toggleLanguage} t={t} />
-      
+
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
-          
+
           {/* Input Section */}
           <section className="lg:col-span-5 space-y-6 mb-8 lg:mb-0">
             <PriceInputForm
@@ -140,17 +140,17 @@ const App: React.FC = () => {
               errors={errors}
               t={t}
             />
-            
+
             <div className="hidden lg:block">
-               <InfoSection t={t} />
+              <InfoSection t={t} />
             </div>
           </section>
 
           {/* Results Section */}
-          <section 
-            id="results-section" 
+          <section
+            id="results-section"
             ref={resultsRef}
-            tabIndex={-1} 
+            tabIndex={-1}
             className="lg:col-span-7 space-y-6 scroll-mt-24 outline-none"
             aria-label="Calculation Results"
           >
@@ -162,24 +162,24 @@ const App: React.FC = () => {
             ) : (
               <div className="bg-white rounded-xl shadow p-8 text-center text-gray-500 border border-dashed border-gray-300">
                 {hasCalculated && results.length === 0 ? (
-                     <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mx-auto text-gray-300 mb-3">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
-                        <p>{t.errors.noValidOptions}</p>
-                     </div>
+                  <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mx-auto text-gray-300 mb-3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                    <p>{t.errors.noValidOptions}</p>
+                  </div>
                 ) : (
-                    <div>
-                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mx-auto text-gray-300 mb-3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
-                        </svg>
-                        <p>{t.errors.enterDetails}</p>
-                    </div>
+                  <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mx-auto text-gray-300 mb-3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
+                    </svg>
+                    <p>{t.errors.enterDetails}</p>
+                  </div>
                 )}
               </div>
             )}
-             <div className="lg:hidden">
-               <InfoSection t={t} />
+            <div className="lg:hidden">
+              <InfoSection t={t} />
             </div>
           </section>
 

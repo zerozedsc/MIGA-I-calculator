@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Header from './components/Header';
 import PriceInputForm from './components/PriceInputForm';
 import ResultsTable from './components/ResultsTable';
@@ -12,11 +12,13 @@ import { translations } from './utils/translations';
 const initialOptions: PurchaseOption[] = [
   // Default Option 1: Buy by Price, RM 10.00
   { id: '1', grams: '', totalPrice: '10.00', mode: 'price' },
-  { id: '2', grams: '0.017', totalPrice: '', mode: 'weight' },
-  { id: '3', grams: '0.018', totalPrice: '', mode: 'weight' },
-  { id: '4', grams: '0.019', totalPrice: '', mode: 'weight' },
-  { id: '5', grams: '0.020', totalPrice: '', mode: 'weight' },
-  { id: '6', grams: '0.100', totalPrice: '', mode: 'weight' },
+  // Default Option 2: Buy by Weight, 0.016g (Restored)
+  { id: '2', grams: '0.016', totalPrice: '', mode: 'weight' },
+  { id: '3', grams: '0.017', totalPrice: '', mode: 'weight' },
+  { id: '4', grams: '0.018', totalPrice: '', mode: 'weight' },
+  { id: '5', grams: '0.019', totalPrice: '', mode: 'weight' },
+  { id: '6', grams: '0.020', totalPrice: '', mode: 'weight' },
+  { id: '7', grams: '0.100', totalPrice: '', mode: 'weight' },
 ];
 
 const App: React.FC = () => {
@@ -26,6 +28,9 @@ const App: React.FC = () => {
   const [results, setResults] = useState<CalculationResult[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [hasCalculated, setHasCalculated] = useState(false);
+  
+  // Ref for managing focus and scroll to results
+  const resultsRef = useRef<HTMLElement>(null);
 
   const t = translations[language];
 
@@ -93,13 +98,18 @@ const App: React.FC = () => {
       setResults(calculatedResults);
       setHasCalculated(true);
       
-      // Scroll to results on mobile
-      if (window.innerWidth < 1024) {
-        const resultsElement = document.getElementById('results-section');
-        if (resultsElement) {
-            resultsElement.scrollIntoView({ behavior: 'smooth' });
+      // Move focus to results and scroll into view
+      // Works for all device types (Mobile, Tablet, Desktop)
+      setTimeout(() => {
+        if (resultsRef.current) {
+          // scroll-mt-24 (added in className) ensures sticky header doesn't cover content
+          resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          // Set focus for accessibility (screen readers) and keyboard users
+          // preventScroll: true prevents browser from jumping focus, allowing smooth scroll above to handle visual
+          resultsRef.current.focus({ preventScroll: true });
         }
-      }
+      }, 100);
     } else {
         setResults([]);
         setHasCalculated(false);
@@ -137,7 +147,13 @@ const App: React.FC = () => {
           </section>
 
           {/* Results Section */}
-          <section id="results-section" className="lg:col-span-7 space-y-6">
+          <section 
+            id="results-section" 
+            ref={resultsRef}
+            tabIndex={-1} 
+            className="lg:col-span-7 space-y-6 scroll-mt-24 outline-none"
+            aria-label="Calculation Results"
+          >
             {hasCalculated && results.length > 0 ? (
               <div className="animate-slideUp">
                 <BestDealCard bestResult={bestResult} t={t} />

@@ -172,7 +172,12 @@ const PriceInputForm: React.FC<PriceInputFormProps> = ({
             const isWeightMode = option.mode === 'weight';
             
             return (
-              <div key={option.id} className="relative bg-gray-50 p-4 rounded-lg border border-gray-200 animate-fadeIn">
+              <div
+                key={option.id}
+                data-option-id={option.id}
+                data-option-index={index}
+                className="relative bg-gray-50 p-4 rounded-lg border border-gray-200 animate-fadeIn"
+              >
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t.option} {index + 1}</span>

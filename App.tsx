@@ -4,6 +4,7 @@ import PriceInputForm from './components/PriceInputForm';
 import ResultsTable from './components/ResultsTable';
 import BestDealCard from './components/BestDealCard';
 import InfoSection from './components/InfoSection';
+import SmartSuggestions from './components/SmartSuggestions';
 import { PurchaseOption, CalculationResult, FormErrors, Language } from './types';
 import { calculateBestDeal } from './utils/calculations';
 import { translations } from './utils/translations';
@@ -160,6 +161,39 @@ const App: React.FC = () => {
     setLanguage(prev => prev === 'ms' ? 'en' : 'ms');
   };
 
+  const handleApplySuggestion = (suggestedPrice: number, displayedWeight: number) => {
+    const grams = displayedWeight.toFixed(3);
+    const totalPrice = suggestedPrice.toFixed(2);
+
+    const newId = Date.now().toString();
+    let targetId = newId;
+
+    setOptions((prev) => {
+      // Prefer filling an empty slot first.
+      const emptyIndex = prev.findIndex((o) => o.grams === '' && o.totalPrice === '');
+      if (emptyIndex >= 0) {
+        const next = [...prev];
+        targetId = next[emptyIndex].id;
+        next[emptyIndex] = { ...next[emptyIndex], mode: 'price', grams, totalPrice };
+        return next;
+      }
+
+      // Otherwise, append a new option.
+      return [...prev, { id: newId, mode: 'price', grams, totalPrice }];
+    });
+
+    // Scroll to the filled/added option for better UX.
+    setTimeout(() => {
+      const el = document.querySelector(`[data-option-id="${targetId}"]`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+
+    // Optionally re-calculate to immediately show its impact.
+    setTimeout(() => {
+      handleCalculate();
+    }, 250);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
       <Header language={language} toggleLanguage={toggleLanguage} t={t} />
@@ -195,6 +229,12 @@ const App: React.FC = () => {
             {hasCalculated && results.length > 0 ? (
               <div className="animate-slideUp">
                 <BestDealCard bestResult={bestResult} t={t} />
+                <SmartSuggestions
+                  standardPrice={parseFloat(standardPrice)}
+                  options={options}
+                  t={t}
+                  onApplySuggestion={handleApplySuggestion}
+                />
                 <ResultsTable results={results} t={t} />
               </div>
             ) : (

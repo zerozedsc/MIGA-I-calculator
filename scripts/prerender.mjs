@@ -96,6 +96,13 @@ const port = await new Promise((resolve, reject) => {
 const url = `http://127.0.0.1:${port}/`;
 
 try {
+  // IMPORTANT:
+  // We must NOT overwrite dist/index.html with `page.content()`.
+  // `page.content()` may omit the built module script tag, producing a static/non-interactive page in production.
+  // Instead, we preserve the original Vite-built HTML (with script tags) and only inject the rendered #root markup.
+  const originalIndexPath = path.join(distDir, 'index.html');
+  const originalIndexHtml = await fs.readFile(originalIndexPath, 'utf8');
+
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
@@ -106,18 +113,21 @@ try {
   // Ensure React rendered something into #root
   await page.waitForSelector('#root > *', { timeout: 15000 });
 
-  const html = await page.content();
+  const rootInnerHtml = await page.$eval('#root', (el) => el.innerHTML);
 
-  // Tailwind CDN injects a very large <style> block at runtime. Keeping it inside
-  // the prerender snapshot can bloat index.html dramatically. Styling is not
-  // required for SEO indexing, so we strip that injected style while keeping
-  // the rendered DOM content.
-  const stripped = html.replace(
-    /<style>([\s\S]*?(?:tailwindcss|--tw-)[\s\S]*?)<\/style>/gi,
-    ''
-  );
+  const injected = (() => {
+    // Prefer the exact empty root markup produced by Vite.
+    if (originalIndexHtml.includes('<div id="root"></div>')) {
+      return originalIndexHtml.replace('<div id="root"></div>', `<div id="root">${rootInnerHtml}</div>`);
+    }
+    // Fallback: replace any existing root contents.
+    return originalIndexHtml.replace(
+      /<div\s+id=("|')root\1>[\s\S]*?<\/div>/i,
+      `<div id="root">${rootInnerHtml}</div>`
+    );
+  })();
 
-  await fs.writeFile(path.join(distDir, 'index.html'), stripped, 'utf8');
+  await fs.writeFile(originalIndexPath, injected, 'utf8');
 
   await browser.close();
   console.log('[prerender] Wrote prerendered dist/index.html');

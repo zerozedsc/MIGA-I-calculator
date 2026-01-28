@@ -96,41 +96,64 @@ const port = await new Promise((resolve, reject) => {
 const url = `http://127.0.0.1:${port}/`;
 
 try {
-  // IMPORTANT:
-  // We must NOT overwrite dist/index.html with `page.content()`.
-  // `page.content()` may omit the built module script tag, producing a static/non-interactive page in production.
-  // Instead, we preserve the original Vite-built HTML (with script tags) and only inject the rendered #root markup.
-  const originalIndexPath = path.join(distDir, 'index.html');
-  const originalIndexHtml = await fs.readFile(originalIndexPath, 'utf8');
+  let skipPrerender = false;
 
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
+  // Allow CI/hosts (e.g., Netlify) to skip prerender explicitly.
+  // This is useful because many build images do not ship with Chrome/Chromium and may block downloads.
+  if (process.env.SKIP_PRERENDER === '1' || process.env.PRERENDER === '0') {
+    console.log('[prerender] Skipping prerender (SKIP_PRERENDER=1 or PRERENDER=0).');
+    skipPrerender = true;
+  }
 
-  const page = await browser.newPage();
-  await page.goto(url, { waitUntil: ['domcontentloaded', 'networkidle0'] });
+  if (!skipPrerender) {
+    // IMPORTANT:
+    // We must NOT overwrite dist/index.html with `page.content()`.
+    // `page.content()` may omit the built module script tag, producing a static/non-interactive page in production.
+    // Instead, we preserve the original Vite-built HTML (with script tags) and only inject the rendered #root markup.
+    const originalIndexPath = path.join(distDir, 'index.html');
+    const originalIndexHtml = await fs.readFile(originalIndexPath, 'utf8');
 
-  // Ensure React rendered something into #root
-  await page.waitForSelector('#root > *', { timeout: 15000 });
+    let browser;
+    try {
+      browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
 
-  const rootInnerHtml = await page.$eval('#root', (el) => el.innerHTML);
+      const page = await browser.newPage();
+      await page.goto(url, { waitUntil: ['domcontentloaded', 'networkidle0'] });
 
-  const injected = (() => {
-    // Prefer the exact empty root markup produced by Vite.
-    if (originalIndexHtml.includes('<div id="root"></div>')) {
-      return originalIndexHtml.replace('<div id="root"></div>', `<div id="root">${rootInnerHtml}</div>`);
+      // Ensure React rendered something into #root
+      await page.waitForSelector('#root > *', { timeout: 15000 });
+
+      const rootInnerHtml = await page.$eval('#root', (el) => el.innerHTML);
+
+      const injected = (() => {
+        // Prefer the exact empty root markup produced by Vite.
+        if (originalIndexHtml.includes('<div id="root"></div>')) {
+          return originalIndexHtml.replace('<div id="root"></div>', `<div id="root">${rootInnerHtml}</div>`);
+        }
+        // Fallback: replace any existing root contents.
+        return originalIndexHtml.replace(
+          /<div\s+id=("|')root\1>[\s\S]*?<\/div>/i,
+          `<div id="root">${rootInnerHtml}</div>`
+        );
+      })();
+
+      await fs.writeFile(originalIndexPath, injected, 'utf8');
+      console.log('[prerender] Wrote prerendered dist/index.html');
+    } catch (err) {
+      // Treat prerender as a best-effort optimization; never fail the build.
+      // Netlify commonly fails here with: "Could not find Chrome ...".
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn('[prerender] Skipping prerender due to an error (best-effort step).');
+      console.warn(`[prerender] Reason: ${message}`);
+      console.warn('[prerender] Tip: Set SKIP_PRERENDER=1 on the host, or configure a Chromium install/executable path.');
+    } finally {
+      if (browser) {
+        await browser.close().catch(() => undefined);
+      }
     }
-    // Fallback: replace any existing root contents.
-    return originalIndexHtml.replace(
-      /<div\s+id=("|')root\1>[\s\S]*?<\/div>/i,
-      `<div id="root">${rootInnerHtml}</div>`
-    );
-  })();
-
-  await fs.writeFile(originalIndexPath, injected, 'utf8');
-
-  await browser.close();
-  console.log('[prerender] Wrote prerendered dist/index.html');
+  }
 } finally {
   await new Promise((resolve) => server.close(() => resolve()));
 }

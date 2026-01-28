@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Header from './components/Header';
 import PriceInputForm from './components/PriceInputForm';
 import ResultsTable from './components/ResultsTable';
@@ -33,6 +33,44 @@ const App: React.FC = () => {
   const resultsRef = useRef<HTMLElement>(null);
 
   const t = translations[language];
+
+  // Keep document-level metadata in sync (useful for SEO previews and accessibility)
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.title = t.title;
+
+    // Prefer absolute URLs for canonical + og:url
+    const configuredSiteUrl = (import.meta.env.VITE_SITE_URL || '').trim().replace(/\/+$/, '');
+    const configuredOrigin = /^https?:\/\//i.test(configuredSiteUrl) ? configuredSiteUrl : '';
+    const origin = (typeof window !== 'undefined' && window.location?.origin)
+      ? window.location.origin
+      : '';
+    const base = configuredOrigin || origin;
+    const absoluteHome = base ? new URL('/', base).toString() : '/';
+
+    const canonicalEl = document.querySelector('link[rel="canonical"]');
+    if (canonicalEl) {
+      canonicalEl.setAttribute('href', absoluteHome);
+    }
+
+    const descriptionContent = language === 'ms'
+      ? 'Kalkulator untuk banding pilihan belian MIGA-i dan cari harga per gram terbaik.'
+      : 'Compare MIGA-i purchase options and instantly see price-per-gram to find the best value.';
+
+    const setMeta = (selector: string, content: string) => {
+      const el = document.querySelector(selector);
+      if (el) {
+        el.setAttribute('content', content);
+      }
+    };
+
+    setMeta('meta[name="description"]', descriptionContent);
+    setMeta('meta[property="og:url"]', absoluteHome);
+    setMeta('meta[property="og:title"]', t.title);
+    setMeta('meta[property="og:description"]', descriptionContent);
+    setMeta('meta[name="twitter:title"]', t.title);
+    setMeta('meta[name="twitter:description"]', descriptionContent);
+  }, [language, t.title]);
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};

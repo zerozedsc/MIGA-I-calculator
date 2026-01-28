@@ -1,0 +1,16 @@
+{
+    "name": "MIGA-i Gold Price Calculator",
+    "short_name": "MIGA-i Calc",
+    "description": "Compare MIGA-i purchase options and see price-per-gram to find the best value.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#FFD100",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

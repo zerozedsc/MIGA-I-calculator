@@ -101,13 +101,13 @@ const PriceInputForm: React.FC<PriceInputFormProps> = ({
   };
 
   const applyMinGramsToFirst = () => {
-      const minGrams = calculateMinGrams();
-      if (minGrams && options.length > 0) {
-          const newOptions = [...options];
-          // Since it's based on RM10, we switch to 'price' mode for clarity
-          newOptions[0] = { ...newOptions[0], mode: 'price', totalPrice: '10.00', grams: minGrams };
-          setOptions(newOptions);
-      }
+    const minGrams = calculateMinGrams();
+    if (minGrams && options.length > 0) {
+      const newOptions = [...options];
+      // Since it's based on RM10, we switch to 'price' mode for clarity
+      newOptions[0] = { ...newOptions[0], mode: 'price', totalPrice: '10.00', grams: minGrams };
+      setOptions(newOptions);
+    }
   };
 
   const minGrams = calculateMinGrams();
@@ -143,16 +143,17 @@ const PriceInputForm: React.FC<PriceInputFormProps> = ({
           {errors.standardPrice && (
             <p className="mt-1 text-sm text-red-600">{errors.standardPrice}</p>
           )}
-          <div className="mt-2 text-xs text-gray-500 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+          <div className="mt-2 text-xs text-gray-500 flex flex-col gap-1">
             <span>{t.checkLivePrice}</span>
+            <span className="text-gray-600">{t.smartSuggestionsTipUnderStandardPrice}</span>
             {minGrams && (
-                <button 
-                  onClick={applyMinGramsToFirst}
-                  className="text-maybank-dark font-medium hover:underline text-left"
-                  title="Click to set Option 1 weight"
-                >
-                    {t.minPurchaseLink.replace('{grams}', minGrams)}
-                </button>
+              <button
+                onClick={applyMinGramsToFirst}
+                className="text-maybank-dark font-medium hover:underline text-left"
+                title="Click to set Option 1 weight"
+              >
+                {t.minPurchaseLink.replace('{grams}', minGrams)}
+              </button>
             )}
           </div>
         </div>
@@ -160,17 +161,17 @@ const PriceInputForm: React.FC<PriceInputFormProps> = ({
         <div className="border-t border-gray-200 my-6"></div>
 
         <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
-            </svg>
-            {t.purchaseOptions}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
+          </svg>
+          {t.purchaseOptions}
         </h2>
 
         {/* Dynamic Options */}
         <div className="space-y-4">
           {options.map((option, index) => {
             const isWeightMode = option.mode === 'weight';
-            
+
             return (
               <div
                 key={option.id}
@@ -182,8 +183,8 @@ const PriceInputForm: React.FC<PriceInputFormProps> = ({
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t.option} {index + 1}</span>
                     <label className="inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="sr-only peer"
                         checked={!isWeightMode}
                         onChange={() => toggleMode(option.id)}
@@ -206,85 +207,85 @@ const PriceInputForm: React.FC<PriceInputFormProps> = ({
                     </button>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
-                  
+
                   {/* First Input Position */}
                   {isWeightMode ? (
-                     // Mode: Weight -> Price. Show Grams first.
-                     <div>
-                       <label htmlFor={`grams-${option.id}`} className="block text-xs font-medium text-gray-700 mb-1">
-                         {t.inputWeight}
-                       </label>
-                       <SmartInput
-                         id={`grams-${option.id}`}
-                         decimals={3}
-                         placeholder="0.000"
-                         className={`block w-full rounded-md border-gray-700 py-2 px-3 shadow-sm focus:border-maybank-yellow focus:ring-maybank-yellow sm:text-sm bg-gray-900 text-gray-400 placeholder-gray-600 border ${errors.options?.[option.id]?.grams ? 'border-red-500' : ''}`}
-                         value={option.grams}
-                         onChange={(val) => handleOptionChange(option.id, 'grams', val)}
-                       />
-                        {errors.options?.[option.id]?.grams && (
-                             <p className="mt-1 text-xs text-red-600">{errors.options[option.id].grams}</p>
-                         )}
-                     </div>
+                    // Mode: Weight -> Price. Show Grams first.
+                    <div>
+                      <label htmlFor={`grams-${option.id}`} className="block text-xs font-medium text-gray-700 mb-1">
+                        {t.inputWeight}
+                      </label>
+                      <SmartInput
+                        id={`grams-${option.id}`}
+                        decimals={3}
+                        placeholder="0.000"
+                        className={`block w-full rounded-md border-gray-700 py-2 px-3 shadow-sm focus:border-maybank-yellow focus:ring-maybank-yellow sm:text-sm bg-gray-900 text-gray-400 placeholder-gray-600 border ${errors.options?.[option.id]?.grams ? 'border-red-500' : ''}`}
+                        value={option.grams}
+                        onChange={(val) => handleOptionChange(option.id, 'grams', val)}
+                      />
+                      {errors.options?.[option.id]?.grams && (
+                        <p className="mt-1 text-xs text-red-600">{errors.options[option.id].grams}</p>
+                      )}
+                    </div>
                   ) : (
-                     // Mode: Price -> Weight. Show Price first.
-                     <div>
-                        <label htmlFor={`price-${option.id}`} className="block text-xs font-medium text-gray-700 mb-1">
-                          {t.inputTotal}
-                        </label>
-                        <SmartInput
-                          id={`price-${option.id}`}
-                          decimals={2}
-                          placeholder="0.00"
-                          className={`block w-full rounded-md border-gray-700 py-2 px-3 shadow-sm focus:border-maybank-yellow focus:ring-maybank-yellow sm:text-sm bg-gray-900 text-gray-400 placeholder-gray-600 border ${errors.options?.[option.id]?.totalPrice ? 'border-red-500' : ''}`}
-                          value={option.totalPrice}
-                          onChange={(val) => handleOptionChange(option.id, 'totalPrice', val)}
-                        />
-                         {errors.options?.[option.id]?.totalPrice && (
-                             <p className="mt-1 text-xs text-red-600">{errors.options[option.id].totalPrice}</p>
-                         )}
-                     </div>
+                    // Mode: Price -> Weight. Show Price first.
+                    <div>
+                      <label htmlFor={`price-${option.id}`} className="block text-xs font-medium text-gray-700 mb-1">
+                        {t.inputTotal}
+                      </label>
+                      <SmartInput
+                        id={`price-${option.id}`}
+                        decimals={2}
+                        placeholder="0.00"
+                        className={`block w-full rounded-md border-gray-700 py-2 px-3 shadow-sm focus:border-maybank-yellow focus:ring-maybank-yellow sm:text-sm bg-gray-900 text-gray-400 placeholder-gray-600 border ${errors.options?.[option.id]?.totalPrice ? 'border-red-500' : ''}`}
+                        value={option.totalPrice}
+                        onChange={(val) => handleOptionChange(option.id, 'totalPrice', val)}
+                      />
+                      {errors.options?.[option.id]?.totalPrice && (
+                        <p className="mt-1 text-xs text-red-600">{errors.options[option.id].totalPrice}</p>
+                      )}
+                    </div>
                   )}
 
                   {/* Second Input Position */}
                   {isWeightMode ? (
-                      // Mode: Weight -> Price. Show Price second.
-                     <div>
-                        <label htmlFor={`price-${option.id}`} className="block text-xs font-medium text-gray-700 mb-1">
-                          {t.resultingPrice}
-                        </label>
-                        <SmartInput
-                          id={`price-${option.id}`}
-                          decimals={2}
-                          placeholder="0.00"
-                          className={`block w-full rounded-md border-gray-700 py-2 px-3 shadow-sm focus:border-maybank-yellow focus:ring-maybank-yellow sm:text-sm bg-gray-900 text-gray-400 placeholder-gray-600 border ${errors.options?.[option.id]?.totalPrice ? 'border-red-500' : ''}`}
-                          value={option.totalPrice}
-                          onChange={(val) => handleOptionChange(option.id, 'totalPrice', val)}
-                        />
-                         {errors.options?.[option.id]?.totalPrice && (
-                             <p className="mt-1 text-xs text-red-600">{errors.options[option.id].totalPrice}</p>
-                         )}
-                     </div>
+                    // Mode: Weight -> Price. Show Price second.
+                    <div>
+                      <label htmlFor={`price-${option.id}`} className="block text-xs font-medium text-gray-700 mb-1">
+                        {t.resultingPrice}
+                      </label>
+                      <SmartInput
+                        id={`price-${option.id}`}
+                        decimals={2}
+                        placeholder="0.00"
+                        className={`block w-full rounded-md border-gray-700 py-2 px-3 shadow-sm focus:border-maybank-yellow focus:ring-maybank-yellow sm:text-sm bg-gray-900 text-gray-400 placeholder-gray-600 border ${errors.options?.[option.id]?.totalPrice ? 'border-red-500' : ''}`}
+                        value={option.totalPrice}
+                        onChange={(val) => handleOptionChange(option.id, 'totalPrice', val)}
+                      />
+                      {errors.options?.[option.id]?.totalPrice && (
+                        <p className="mt-1 text-xs text-red-600">{errors.options[option.id].totalPrice}</p>
+                      )}
+                    </div>
                   ) : (
-                      // Mode: Price -> Weight. Show Grams second.
-                     <div>
-                       <label htmlFor={`grams-${option.id}`} className="block text-xs font-medium text-gray-700 mb-1">
-                         {t.resultingWeight}
-                       </label>
-                       <SmartInput
-                         id={`grams-${option.id}`}
-                         decimals={3}
-                         placeholder="0.000"
-                         className={`block w-full rounded-md border-gray-700 py-2 px-3 shadow-sm focus:border-maybank-yellow focus:ring-maybank-yellow sm:text-sm bg-gray-900 text-gray-400 placeholder-gray-600 border ${errors.options?.[option.id]?.grams ? 'border-red-500' : ''}`}
-                         value={option.grams}
-                         onChange={(val) => handleOptionChange(option.id, 'grams', val)}
-                       />
-                        {errors.options?.[option.id]?.grams && (
-                             <p className="mt-1 text-xs text-red-600">{errors.options[option.id].grams}</p>
-                         )}
-                     </div>
+                    // Mode: Price -> Weight. Show Grams second.
+                    <div>
+                      <label htmlFor={`grams-${option.id}`} className="block text-xs font-medium text-gray-700 mb-1">
+                        {t.resultingWeight}
+                      </label>
+                      <SmartInput
+                        id={`grams-${option.id}`}
+                        decimals={3}
+                        placeholder="0.000"
+                        className={`block w-full rounded-md border-gray-700 py-2 px-3 shadow-sm focus:border-maybank-yellow focus:ring-maybank-yellow sm:text-sm bg-gray-900 text-gray-400 placeholder-gray-600 border ${errors.options?.[option.id]?.grams ? 'border-red-500' : ''}`}
+                        value={option.grams}
+                        onChange={(val) => handleOptionChange(option.id, 'grams', val)}
+                      />
+                      {errors.options?.[option.id]?.grams && (
+                        <p className="mt-1 text-xs text-red-600">{errors.options[option.id].grams}</p>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -297,8 +298,8 @@ const PriceInputForm: React.FC<PriceInputFormProps> = ({
             onClick={addOption}
             className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-maybank-yellow hover:text-gray-900 transition-colors flex items-center justify-center gap-2"
           >
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             {t.addOption}
           </button>

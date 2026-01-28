@@ -32,6 +32,7 @@ const App: React.FC = () => {
 
   // Ref for managing focus and scroll to results
   const resultsRef = useRef<HTMLElement>(null);
+  const bestDealFocusRef = useRef<HTMLDivElement>(null);
 
   const t = translations[language];
 
@@ -165,33 +166,32 @@ const App: React.FC = () => {
     const grams = displayedWeight.toFixed(3);
     const totalPrice = suggestedPrice.toFixed(2);
 
+    // Build next options synchronously so we can re-calc immediately.
     const newId = Date.now().toString();
-    let targetId = newId;
+    let nextOptions: PurchaseOption[];
 
-    setOptions((prev) => {
-      // Prefer filling an empty slot first.
-      const emptyIndex = prev.findIndex((o) => o.grams === '' && o.totalPrice === '');
-      if (emptyIndex >= 0) {
-        const next = [...prev];
-        targetId = next[emptyIndex].id;
-        next[emptyIndex] = { ...next[emptyIndex], mode: 'price', grams, totalPrice };
-        return next;
-      }
+    // Prefer filling an empty slot first.
+    const emptyIndex = options.findIndex((o) => o.grams === '' && o.totalPrice === '');
+    if (emptyIndex >= 0) {
+      nextOptions = [...options];
+      nextOptions[emptyIndex] = { ...nextOptions[emptyIndex], mode: 'price', grams, totalPrice };
+    } else {
+      nextOptions = [...options, { id: newId, mode: 'price', grams, totalPrice }];
+    }
 
-      // Otherwise, append a new option.
-      return [...prev, { id: newId, mode: 'price', grams, totalPrice }];
-    });
+    setOptions(nextOptions);
 
-    // Scroll to the filled/added option for better UX.
+    // Re-calculate immediately (do not depend on form validation here).
+    // This matches user expectation: update Best Value + table right after clicking "Try This".
+    const calculatedResults = calculateBestDeal(standardPrice, nextOptions);
+    setResults(calculatedResults);
+    setHasCalculated(true);
+
+    // Focus Best Value Option after update.
     setTimeout(() => {
-      const el = document.querySelector(`[data-option-id="${targetId}"]`);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      bestDealFocusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      bestDealFocusRef.current?.focus({ preventScroll: true });
     }, 120);
-
-    // Optionally re-calculate to immediately show its impact.
-    setTimeout(() => {
-      handleCalculate();
-    }, 250);
   };
 
   return (
@@ -227,8 +227,10 @@ const App: React.FC = () => {
             aria-label="Calculation Results"
           >
             {hasCalculated && results.length > 0 ? (
-              <div className="animate-slideUp">
-                <BestDealCard bestResult={bestResult} t={t} />
+              <div className="animate-slideUp space-y-6">
+                <div ref={bestDealFocusRef} tabIndex={-1} className="outline-none">
+                  <BestDealCard bestResult={bestResult} t={t} />
+                </div>
                 <SmartSuggestions
                   standardPrice={parseFloat(standardPrice)}
                   options={options}

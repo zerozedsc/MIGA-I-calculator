@@ -270,7 +270,20 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center gap-3">
             <p className="text-center text-sm text-gray-400">
-              &copy; {new Date().getFullYear()} {t.title}. Not affiliated with Malayan Banking Berhad.
+              &copy; {new Date().getFullYear()} {t.title}. {t.notAffiliated}
+            </p>
+
+            <p className="text-center text-sm text-gray-500">
+              <span className="whitespace-nowrap">{t.createdBy}</span>{' '}
+              <a
+                href="https://iamhelmi.me"
+                target="_blank"
+                rel="noopener noreferrer me"
+                className="font-semibold text-gray-700 hover:text-gray-900 underline decoration-gray-300 hover:decoration-gray-600 underline-offset-4 transition-colors"
+                aria-label={`${t.createdBy} ${t.creatorName} (${t.creatorSiteLabel})`}
+              >
+                {t.creatorName}
+              </a>
             </p>
 
             <div className="flex items-center justify-center">

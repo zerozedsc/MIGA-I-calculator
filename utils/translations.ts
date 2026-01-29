@@ -2,6 +2,10 @@ export const translations = {
   ms: {
     title: "Kalkulator Harga Emas MIGA-i",
     subtitle: "Cari Amaun Belian Emas Paling Menguntungkan",
+    createdBy: "Dicipta dan direka oleh",
+    creatorName: "MUHAMMAD HELMI ROZAIN",
+    creatorSiteLabel: "iamhelmi.me",
+    notAffiliated: "Tidak berafiliasi dengan Malayan Banking Berhad.",
     unofficial: "Alat Tidak Rasmi",
     marketData: "Data Pasaran",
     standardPriceLabel: "Harga Emas Standard Semasa (RM/g)",
@@ -76,6 +80,10 @@ export const translations = {
   en: {
     title: "MIGA-i Gold Price Calculator",
     subtitle: "Find the Most Profitable Gold Purchase Amount",
+    createdBy: "Created and designed by",
+    creatorName: "MUHAMMAD HELMI ROZAIN",
+    creatorSiteLabel: "iamhelmi.me",
+    notAffiliated: "Not affiliated with Malayan Banking Berhad.",
     unofficial: "Unofficial Tool",
     marketData: "Market Data",
     standardPriceLabel: "Current Standard Gold Price (RM/g)",

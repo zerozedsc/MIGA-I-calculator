@@ -170,6 +170,10 @@ const SuggestionCard: React.FC<{
                 <div className="mt-1 text-xs text-gray-600">
                     {suggestion.savingsPercentage.toFixed(2)}% {t.cheaperThanStandard}
                 </div>
+                <div className="mt-0.5 text-xs text-gray-600">
+                    {t.colPricePerGram}:{' '}
+                    <span className="font-bold text-gray-800">{formatCurrency(suggestion.pricePerGram)}/g</span>
+                </div>
             </div>
 
             <button
@@ -211,9 +215,17 @@ const SuggestionRow: React.FC<{
                         </div>
                     </div>
 
-                    <div className="mt-1 text-xs text-gray-600">
-                        {t.predictedSavings}: <span className="font-bold text-orange-800">{formatCurrency(suggestion.savingsPerGram)}/g</span>{' '}
-                        <span className="text-gray-500">({suggestion.savingsPercentage.toFixed(2)}%)</span>
+                    <div className="mt-1 text-xs text-gray-600 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span>
+                            {t.predictedSavings}:{' '}
+                            <span className="font-bold text-orange-800">{formatCurrency(suggestion.savingsPerGram)}/g</span>{' '}
+                            <span className="text-gray-500">({suggestion.savingsPercentage.toFixed(2)}%)</span>
+                        </span>
+                        <span className="text-gray-300">•</span>
+                        <span>
+                            {t.colPricePerGram}:{' '}
+                            <span className="font-bold text-gray-800">{formatCurrency(suggestion.pricePerGram)}/g</span>
+                        </span>
                     </div>
                 </div>
 

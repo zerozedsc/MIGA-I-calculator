@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PurchaseOption } from '../types';
 import {
     findSmartPriceSuggestions,
@@ -12,6 +12,8 @@ interface SmartSuggestionsProps {
     options: PurchaseOption[];
     t: any;
     onApplySuggestion: (suggestedPrice: number, displayedWeight: number) => void;
+    autoFocus?: boolean;
+    requireMinBuyBaseline?: boolean;
 }
 
 const toSuggestionInputs = (options: PurchaseOption[]): SuggestionInput[] => {
@@ -21,18 +23,19 @@ const toSuggestionInputs = (options: PurchaseOption[]): SuggestionInput[] => {
         const grams = parseFloat(opt.grams);
         const price = parseFloat(opt.totalPrice);
 
-        if (opt.mode === 'price') {
-            if (Number.isFinite(price) && price > 0) {
-                inputs.push({ method: 'BY_PRICE', price });
-            }
+        // IMPORTANT UX (bug fix):
+        // Only treat an option as a valid observation if the user has filled BOTH fields:
+        // - buy-by-price: RM amount + resulting displayed grams
+        // - buy-by-weight: grams + resulting price
+        // This prevents the default placeholder weight options (0.016g, 0.017g, ...) from triggering
+        // Smart Suggestions when the user only enters the standard price.
+        if (!(Number.isFinite(price) && price > 0 && Number.isFinite(grams) && grams > 0)) {
             continue;
         }
 
-        if (opt.mode === 'weight') {
-            if (Number.isFinite(grams) && grams > 0) {
-                inputs.push({ method: 'BY_WEIGHT', weight: grams });
-            }
-        }
+        // For a fully-filled option, always contribute BOTH dimensions.
+        inputs.push({ method: 'BY_PRICE', price });
+        inputs.push({ method: 'BY_WEIGHT', weight: grams });
     }
 
     return inputs;
@@ -43,11 +46,35 @@ const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
     options,
     t,
     onApplySuggestion,
+    autoFocus,
+    requireMinBuyBaseline,
 }) => {
     const [showAll, setShowAll] = useState(false);
     const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([]);
 
+    const containerRef = useRef<HTMLDivElement>(null);
+    const didAutoFocusRef = useRef(false);
+
     const suggestionInputs = useMemo(() => toSuggestionInputs(options), [options]);
+
+    const hasMinBuyBaseline = useMemo(() => {
+        // Requirement for pre-calc auto-show:
+        // - option is buy-by-price
+        // - min price is RM10.00
+        // - user has filled the resulting displayed grams (as seen in MIGA-i)
+        const opt = options.find((o) => o.id === '1');
+        if (!opt) return false;
+        if (opt.mode !== 'price') return false;
+
+        const price = parseFloat(opt.totalPrice);
+        const grams = parseFloat(opt.grams);
+
+        if (!Number.isFinite(price) || !Number.isFinite(grams)) return false;
+        if (grams <= 0) return false;
+
+        // Treat “RM10.00” as the explicit baseline (within 0.5 cent tolerance)
+        return Math.abs(price - 10) <= 0.005;
+    }, [options]);
 
     useEffect(() => {
         // Only show when user has 2+ inputs, per reference spec.
@@ -57,9 +84,38 @@ const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
             return;
         }
 
+        // Pre-calc gate: require RM10 buy-by-price baseline + resulting grams filled.
+        if (requireMinBuyBaseline && !hasMinBuyBaseline) {
+            setSuggestions([]);
+            setShowAll(false);
+            return;
+        }
+
         const results = findSmartPriceSuggestions(standardPrice, suggestionInputs, 5);
         setSuggestions(results);
-    }, [standardPrice, suggestionInputs]);
+    }, [standardPrice, suggestionInputs, requireMinBuyBaseline, hasMinBuyBaseline]);
+
+    useEffect(() => {
+        if (!autoFocus) {
+            return;
+        }
+
+        if (didAutoFocusRef.current) {
+            return;
+        }
+
+        if (suggestions.length === 0) {
+            return;
+        }
+
+        didAutoFocusRef.current = true;
+
+        // Delay slightly so layout is stable before scrolling.
+        window.setTimeout(() => {
+            containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            containerRef.current?.focus({ preventScroll: true });
+        }, 80);
+    }, [autoFocus, suggestions.length]);
 
     if (suggestions.length === 0) {
         return null;
@@ -70,7 +126,12 @@ const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
     const visible = suggestions.slice(0, visibleCount);
 
     return (
-        <div className="bg-gradient-to-br from-maybank-yellow/10 via-orange-50 to-white rounded-xl shadow-lg border border-orange-200 overflow-hidden">
+        <div
+            ref={containerRef}
+            tabIndex={-1}
+            className="bg-gradient-to-br from-maybank-yellow/10 via-orange-50 to-white rounded-xl shadow-lg border border-orange-200 overflow-hidden scroll-mt-24 outline-none"
+            aria-label={t.smartSuggestionsTitle}
+        >
             <div className="p-4 sm:p-5 flex items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-maybank-yellow to-orange-400 flex items-center justify-center text-black font-extrabold shadow-sm">

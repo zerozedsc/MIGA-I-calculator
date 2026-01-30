@@ -226,17 +226,20 @@ const App: React.FC = () => {
             className="lg:col-span-7 space-y-6 scroll-mt-24 outline-none"
             aria-label="Calculation Results"
           >
+            <SmartSuggestions
+              standardPrice={parseFloat(standardPrice)}
+              options={options}
+              t={t}
+              onApplySuggestion={handleApplySuggestion}
+              autoFocus={!hasCalculated}
+              requireMinBuyBaseline={true}
+            />
+
             {hasCalculated && results.length > 0 ? (
               <div className="animate-slideUp space-y-6">
                 <div ref={bestDealFocusRef} tabIndex={-1} className="outline-none">
                   <BestDealCard bestResult={bestResult} t={t} />
                 </div>
-                <SmartSuggestions
-                  standardPrice={parseFloat(standardPrice)}
-                  options={options}
-                  t={t}
-                  onApplySuggestion={handleApplySuggestion}
-                />
                 <ResultsTable results={results} t={t} />
               </div>
             ) : (

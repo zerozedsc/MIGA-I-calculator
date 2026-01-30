@@ -94,8 +94,10 @@ const PriceInputForm: React.FC<PriceInputFormProps> = ({
   const calculateMinGrams = (): string => {
     const price = parseFloat(standardPrice);
     if (!isNaN(price) && price > 0) {
-      // RM 10 min purchase. ceil to 3 decimals to ensure > RM10
-      return (Math.ceil((10 / price) * 1000) / 1000).toFixed(3);
+      // RM10 baseline (displayed grams are rounded to 3dp in MIGA-i).
+      // This is an estimate to help users quickly fill Option 1; users should still verify
+      // the displayed grams in MIGA-i for best accuracy.
+      return (Math.round((10 / price) * 1000) / 1000).toFixed(3);
     }
     return '';
   };

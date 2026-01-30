@@ -36,8 +36,20 @@ const extractPriceRange = (userInputs: SuggestionInput[], standardPrice: number)
             price = input.weight * standardPrice;
         }
 
-        // MIGA-i minimum purchase
-        if (Number.isFinite(price) && price >= 10) {
+        if (!Number.isFinite(price) || price <= 0) {
+            continue;
+        }
+
+        // NOTE:
+        // - For BY_PRICE, enforce MIGA-i minimum purchase (RM10).
+        // - For BY_WEIGHT, allow the implied price even if it falls slightly below RM10.
+        //   This happens when the displayed grams are rounded down (e.g., RM10 -> 0.014g), so
+        //   (0.014 * standardPrice) can be < 10 even though the user actually paid RM10.
+        if (input.method === 'BY_PRICE') {
+            if (price >= 10) {
+                prices.push(price);
+            }
+        } else {
             prices.push(price);
         }
     }
@@ -48,15 +60,20 @@ const extractPriceRange = (userInputs: SuggestionInput[], standardPrice: number)
 const generateTargetWeights = (
     minPrice: number,
     maxPrice: number,
-    standardPrice: number
+    standardPrice: number,
+    startWeight: number = 0.015
 ): number[] => {
     const maxWeight = maxPrice / standardPrice;
 
     const weights: number[] = [];
 
-    // Start from 0.015g based on the reference doc.
+    // Start from a sensible minimum weight.
+    // If the user provided the minimum-buy displayed grams (e.g., RM10 => 0.014/0.015/0.016),
+    // start from that value so suggestions align with their baseline.
     // Walk in 0.001g increments (3dp) up to the maxWeight.
-    for (let w = 0.015; w <= maxWeight + 0.005; w += 0.001) {
+    const safeStart = Math.max(0.001, roundTo(startWeight, 3));
+
+    for (let w = safeStart; w <= maxWeight + 0.005; w += 0.001) {
         weights.push(roundTo(w, 3));
     }
 
@@ -164,7 +181,23 @@ export const findSmartPriceSuggestions = (
     const searchMinPrice = Math.max(10, minUserPrice - 2);
     const searchMaxPrice = maxUserPrice + 3;
 
-    const targetWeights = generateTargetWeights(searchMinPrice, searchMaxPrice, standardPrice);
+    const startWeight = (() => {
+        const weights = userInputs
+            .filter((i) => i.method === 'BY_WEIGHT' && typeof i.weight === 'number')
+            .map((i) => i.weight as number)
+            .filter((w) => Number.isFinite(w) && w > 0)
+            .map((w) => roundTo(w, 3));
+
+        if (weights.length > 0) {
+            return Math.min(...weights);
+        }
+
+        // Fallback: infer a baseline displayed weight from the minimum user price.
+        // This is a rough estimate (because MIGA-i rounds), but it's better than always assuming 0.015.
+        return roundTo(minUserPrice / standardPrice, 3);
+    })();
+
+    const targetWeights = generateTargetWeights(searchMinPrice, searchMaxPrice, standardPrice, startWeight);
 
     const suggestions: SmartSuggestion[] = [];
 
